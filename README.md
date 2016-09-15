@@ -5,9 +5,9 @@ WordPressをCLIでインストールするためのシェルスクリプトセット
 ## Description
 
 will be installed.
--Apache 
--MariaDB 10.2
--PHP 5.4.45
+    Apache 
+    MariaDB 10.2
+    PHP 5.4.45
 
 ## Usage
 
