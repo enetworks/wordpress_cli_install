@@ -1,10 +1,10 @@
 #!/bin/sh
 #-------------------------------------------------------------------------------------------------------------
-# read config
+# Load config file.
 source ./host_config.sh
 
 #-------------------------------------------------------------------------------------------------------------
-#security iptables settings
+#Changes to iptables Rules.
 cp -a /etc/sysconfig/iptables{,.orig}
 cat << '_EOT_' > /etc/sysconfig/iptables
 # Firewall configuration written by system-config-securitylevel
@@ -27,16 +27,16 @@ COMMIT
 _EOT_
 
 #-------------------------------------------------------------------------------------------------------------
-# yum Package UPDATE
+# Update to YUM Packages.
 yum -y update
 yum -y install yum-cron sudo openssh-clients
 chkconfig yum-cron on
 
 #-------------------------------------------------------------------------------------------------------------
-### apache install & settings
+### Install and Configure Apache.
 yum -y install httpd
 
-# Security log option
+# Configure Security log options.
 sed -i.orig /etc/httpd/conf/httpd.conf \
  -e '/^ServerTokens /s/ .*/ Prod/' \
  -e '/^DirectoryIndex /s/ .*/ index.php index.cgi index.html/' \
@@ -44,7 +44,7 @@ sed -i.orig /etc/httpd/conf/httpd.conf \
  -e '/^#NameVirtualHost /s/^#//' \
  -e '/<Directory \"\/var\/www\/html\">/,/<\/Directory>/s/AllowOverride None/AllowOverride ALL/' 
 
-# Log Rotation
+# Configure logrotation.
 cat << '_EOT_' > /etc/logrotate.d/httpd
 /var/log/httpd/*log /var/www/*/logs/*log {
     monthly
@@ -58,27 +58,23 @@ cat << '_EOT_' > /etc/logrotate.d/httpd
 }
 _EOT_
 
-# service start
+# Start Apache
 chkconfig httpd on
 service httpd start
 
 #-------------------------------------------------------------------------------------------------------------
-### PHP instarll & settings
-yum -y install php php-mbstring gd php-gd ImageMagick*
-sed -i '/date.timezone =/s/^\;//;/date.timezone =/s/=.*/= Asia\/Tokyo/' /etc/php.ini
+### Install and Configure MariaDB.
+cat << '_EOT_' > /etc/yum.repos.d/mariadb.repo
+[mariadb]
+name = MariaDB
+baseurl = http://yum.mariadb.org/10.2/centos6-x86/
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck=1
+enabled=1
+_EOT_
+yum -y install MariaDB-server MariaDB-client
 
-#-------------------------------------------------------------------------------------------------------------
-### WP_CLI instarll & settings
-curl -O  https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-chmod +x wp-cli.phar
-sudo mv wp-cli.phar /usr/local/bin/wp
-wp --info
-
-#-------------------------------------------------------------------------------------------------------------
-### mysql insatall & settings
-yum -y install mysql mysql-server php-mysql 
-
-# my.cnf setting
+# Configure my.cnf.
 cp -a /etc/my.cnf{,.orig}
 cat << '_EOT_' > /etc/my.cnf
 [mysqld]
@@ -101,7 +97,10 @@ pid-file=/var/run/mysqld/mysqld.pid
 default-character-set=utf8
 _EOT_
 
-service mysqld start
+# Start MariaDB
+service mysql start
+chkconfig mysql on
+
 mysql -uroot << '_EOT_'
  DELETE FROM mysql.user WHERE User='';
  DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1');
@@ -110,34 +109,44 @@ mysql -uroot << '_EOT_'
  FLUSH PRIVILEGES;
 _EOT_
 
-# mysql settings
-chkconfig mysqld on
-service mysqld start
 
 #-------------------------------------------------------------------------------------------------------------
-# add operation user
+### Install and Configure PHP.
+yum -y install epel-release
+rpm -ivh http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+yum -y --enablerepo=remi,epel install php php-mysqlnd php-mbstring gd php-gd
+sed -i '/date.timezone =/s/^\;//;/date.timezone =/s/=.*/= Asia\/Tokyo/' /etc/php.ini
+yum -y install ImageMagick*
+
+#-------------------------------------------------------------------------------------------------------------
+### Install and Configure WP_CLI.
+curl  -o /usr/local/bin/wp https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
+chmod +x /usr/local/bin/wp
+wp --info
+
+#-------------------------------------------------------------------------------------------------------------
+# Append operation user 
 useradd ${OPE_USER_NAME}
 echo "${OPE_USER_PASS}"  | passwd --stdin ${OPE_USER_NAME}
-# set password
+
+# Set MariaDB password.
 /usr/bin/mysqladmin -uroot password "${PWD_MYSQL}"
-# set sudoer
-cat << _EOT_ >> /etc/sudoers
-${OPE_USER_NAME}     ALL=(ALL)     NOPASSWD: ALL
-_EOT_
-# add apache group operation user
+
+# Set sudoer.
+echo -e "${OPE_USER_NAME}     ALL=(ALL)     NOPASSWD: ALL" >> /etc/sudoers
+
+# Append operation user to apache group
 usermod -a -G apache ${OPE_USER_NAME}
-# move host_config.sh
+
+# Move host_config.sh
 mv ./host_config.sh /home/${OPE_USER_NAME}/
 chown ${OPE_USER_NAME}:${OPE_USER_NAME} /home/${OPE_USER_NAME}/host_config.sh
 
 #-------------------------------------------------------------------------------------------------------------
-# remove server_init.sh
+# Remove server_init.sh
 rm -f server_init.sh
 
 #-------------------------------------------------------------------------------------------------------------
 #SELINUX off
 sed -i.orig '/^SELINUX=/s/=.*/=disabled/' /etc/selinux/config
-getenforce
-setenforce permissive
-grep ^SELINUX /etc/selinux/config
 reboot
