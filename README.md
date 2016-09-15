@@ -1,10 +1,13 @@
-# ServerSetup
+# wordpress_cli_install
 
-none
+WordPressをCLIでインストールするためのシェルスクリプトセット
 
 ## Description
 
-none
+will be installed.
+-Apache 
+-MariaDB 10.2
+-PHP 5.4.45
 
 ## Usage
 
@@ -12,21 +15,19 @@ none
 
     ssh -i ****** -lroot ***.***.***.***
 
-    curl https://raw.githubusercontent.com/enetworks/wp_install_shells/master/host_config.sh > host_config.sh
+    curl -O https://raw.githubusercontent.com/enetworks/wp_install_shells/master/host_config.sh
     vi host_config.sh
-    curl https://raw.githubusercontent.com/enetworks/wp_install_shells/master/server_init.sh > server_init.sh
+    curl -O https://raw.githubusercontent.com/enetworks/wp_install_shells/master/server_init.sh
     sh server_init.sh
 
 ### Make vHosts
 
     ssh -lusername ***.***.***.***
 
-    curl https://raw.githubusercontent.com/enetworks/wp_install_shells/master/make_vhosts.sh > make_vhosts.sh
+    curl -O https://raw.githubusercontent.com/enetworks/wp_install_shells/master/make_vhosts.sh
     sh make_vhosts.sh
 
 ## Anything Else
-
-Draft!!
 
 ## Author
 
