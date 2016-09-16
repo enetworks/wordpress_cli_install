@@ -10,7 +10,7 @@ export DB_PASS='nr2kdURKb'
 export DB_HOST='localhost'
 
 export WP_URL='http://wordpress001.kensho.mobi'
-export WP_TITLE='WordCampTokyo2016 001'
+export WP_TITLE='WordCampTokyo2016_001'
 export WP_ADMIN='wp_admin'
 export WP_ADMIN_PWD='testtesttesttest'
 export WP_ADMIN_MAIL='maepon@gmail.com'
