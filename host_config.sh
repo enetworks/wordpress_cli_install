@@ -4,8 +4,8 @@ export OPE_USER_PASS='nr2kdURKZ'
 export PWD_MYSQL='wgn5dUoKa'
 export VHOST_FQDN='wordpress001.kensho.mobi'
 
-export DB_NAME='db010'
-export DB_USER='db010user'
+export DB_NAME='db001'
+export DB_USER='db001user'
 export DB_PASS='nr2kdURKb'
 export DB_HOST='localhost'
 
