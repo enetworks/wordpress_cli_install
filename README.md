@@ -20,6 +20,9 @@ WordPressをCLIでインストールするためのシェルスクリプトセ�
     curl -O https://raw.githubusercontent.com/enetworks/wp_install_shells/master/make_vhosts.sh
     sh make_vhosts.sh
 
+## デモ動画
+https://www.youtube.com/watch?v=ujM4pZy9LJ8
+
 ## License
 
 [GPL](./license.txt)
